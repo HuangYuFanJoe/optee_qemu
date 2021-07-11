@@ -1953,6 +1953,20 @@ SYSCALL_DEFINE3(getpeername, int, fd, struct sockaddr __user *, usockaddr,
 	return __sys_getpeername(fd, usockaddr, usockaddr_len);
 }
 
+
+static void cred_to_ucred(struct pid *pid, const struct cred *cred,
+			  struct ucred *ucred)
+{
+	ucred->pid = pid_vnr(pid);
+	ucred->uid = ucred->gid = -1;
+	if (cred) {
+		struct user_namespace *current_ns = current_user_ns();
+
+		ucred->uid = from_kuid_munged(current_ns, cred->euid);
+		ucred->gid = from_kgid_munged(current_ns, cred->egid);
+	}
+}
+
 /*
  *	Send a datagram to a given address. We move the address into kernel
  *	space and check the user space data area is readable before invoking
@@ -1961,8 +1975,6 @@ SYSCALL_DEFINE3(getpeername, int, fd, struct sockaddr __user *, usockaddr,
 int __sys_sendto(int fd, void __user *buff, size_t len, unsigned int flags,
 		 struct sockaddr __user *addr,  int addr_len)
 {
-	int topid = flags;
-	flags = 0;
 	struct socket *sock;
 	struct sockaddr_storage address;
 	int err;
@@ -1994,7 +2006,14 @@ int __sys_sendto(int fd, void __user *buff, size_t len, unsigned int flags,
 	
 	struct pid *PID = sock->file->f_owner.pid;
 	if(PID){
+
 		int frompid = PID->numbers[PID->level].nr;
+
+		struct sock *sk = sock->sk;
+		struct ucred peercred;
+		cred_to_ucred(sk->sk_peer_pid, sk->sk_peer_cred, &peercred);
+		int topid = peercred.pid;
+		
 		printk("frompid: %d, topid: %d", frompid, topid);
 		
 		char* sfrompid = (char*) kcalloc(10, sizeof(char), GFP_KERNEL);
@@ -2005,14 +2024,19 @@ int __sys_sendto(int fd, void __user *buff, size_t len, unsigned int flags,
 		char* cmdArgv[] = {cmdPath, sfrompid, stopid, NULL};
 		char* cmdEnv[] = {"HOME=/", "PATH=/bin:/sbin:/usr/bin", NULL};
 		//printk("call usermodehelper return value: %d", call_usermodehelper(cmdPath, cmdArgv, cmdEnv, UMH_WAIT_PROC));
+		//ktime_t t;
+		//t = ktime_get();
 		if(call_usermodehelper(cmdPath, cmdArgv, cmdEnv, UMH_WAIT_PROC) == 0)
 			printk("flow is legal");
 		else{
 			printk("flow is illegal");
 			goto out_put;
-		}
+		}		
+		//t = ktime_sub(ktime_get(), t);
+		//printk("kernel runtime: %lld\n", (long long)ktime_to_us(t));
 		kfree(sfrompid);
 		kfree(stopid);
+
 	}
 
 	err = sock_sendmsg(sock, &msg);

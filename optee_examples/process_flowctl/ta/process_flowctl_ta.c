@@ -3,7 +3,7 @@
 
 #include <process_flowctl_ta.h>
 #include <string.h>
-static char *mapping[3][50] = {{"source", "destination"}, {"take_picture", "blur_image"}, {"blur_image", "image_check"}};
+static char *mapping[4][50] = {{"source", "destination"}, {"take_picture", "blur_image"}, {"take_picture", "navigator"}, {"blur_image", "image_check"}};
 
 /*
  * Called when the instance of the TA is created. This is the first call in
@@ -82,8 +82,11 @@ static TEE_Result check_flow(uint32_t param_types,
 	
 	IMSG("source: %s, destination: %s\n", CI->source, CI->destination);
 	
+	TEE_Time before, after;
+	TEE_GetREETime(&before);
+	
 	/* check */
-	for(int i = 0; i < 3; i++){
+	for(int i = 0; i < 4; i++){
 		IMSG("check mapping[i]: %s %s", mapping[i][0], mapping[i][1]);
 		if(strcmp(mapping[i][0], CI->source) == 0){
 			if(strcmp(mapping[i][1], CI->destination) == 0){
@@ -92,7 +95,11 @@ static TEE_Result check_flow(uint32_t param_types,
 			}
 		}        
 	}
-
+	
+	TEE_GetREETime(&after);
+	IMSG("Before: %d.%d\n", before.seconds, before.millis);
+	IMSG("After: %d.%d\n", after.seconds, after.millis);
+	
 	IMSG("TA check result: %d", CI->result);
 
 	return TEE_SUCCESS;

@@ -12,63 +12,69 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <linux/socket.h>
-
+#include <sys/time.h>
 
 int main(int argc , char *argv[])
 {
-
-    //socket的建立
-    int sockfd = 0;
-    sockfd = socket(AF_UNIX , SOCK_STREAM , 0);
-
-    if (sockfd == -1){
-        printf("Fail to create a socket.\n");
-    }
-
-
-    int optval = 1;
-    if(setsockopt(sockfd, SOL_SOCKET, SO_PASSCRED, &optval, sizeof(optval)) == -1){
-        printf("SET socket opt failed\n");
-    }
-
-    if(fcntl(sockfd, F_SETOWN, getpid()) == -1){
-    	printf("Set socket_client pid to sockfd failed\n");
-    }
-
-    //socket的連線
-
-    struct sockaddr_un info;
-    bzero(&info,sizeof(info));
-    info.sun_family = AF_UNIX;
-    strcpy(info.sun_path, "./socket");
-
-
-    int err = connect(sockfd,(struct sockaddr *)&info,sizeof(info));
-    if(err==-1){
-        printf("Connection error\n");
-    }
+    struct timeval before, after;
+    gettimeofday(&before, NULL);
     
-    int len;
-    len = sizeof(struct ucred);
-    struct ucred uc;
-    if(getsockopt(sockfd, SOL_SOCKET, SO_PEERCRED, &uc, &len) == -1){
-        printf("get peer cred failed\n");
-    }
+    int k;
+    if(argc == 2)
+    	k = atoi(argv[1]);
+    else if(argc == 1)
+    	k = 1;
     else{
-    	printf("peer pid: %d\n", uc.pid);
+    	printf("Usage: %s count(optional)\n", argv[0]);
+    	return 0;
     }
     
-    //Send a message to server
-    char message[20] = "Requester: fanfan";
-    char receiveMessage[100] = {};
+    for(int i = 0; i < k; i++){
+	    //socket的建立
+	    int sockfd = 0;
+	    sockfd = socket(AF_UNIX , SOCK_STREAM , 0);
+
+	    if (sockfd == -1){
+		printf("Fail to create a socket.\n");
+	    }
 
 
-    send(sockfd,message,sizeof(message), uc.pid);
-    //recv(sockfd,receiveMessage,sizeof(receiveMessage),0);
+	    int optval = 1;
+	    if(setsockopt(sockfd, SOL_SOCKET, SO_PASSCRED, &optval, sizeof(optval)) == -1){
+		printf("SET socket opt failed\n");
+	    }
 
-    //printf("%s",receiveMessage);
-    printf("close Socket\n");
-    close(sockfd);
+	    if(fcntl(sockfd, F_SETOWN, getpid()) == -1){
+	    	printf("Set socket_client pid to sockfd failed\n");
+	    }
+
+	    //socket的連線
+
+	    struct sockaddr_un info;
+	    bzero(&info,sizeof(info));
+	    info.sun_family = AF_UNIX;
+	    strcpy(info.sun_path, "./socket");
+
+
+	    int err = connect(sockfd,(struct sockaddr *)&info,sizeof(info));
+	    if(err==-1){
+		printf("Connection error\n");
+	    }
+	    
+	    //Send a message to server
+	    char message[1024] = "Requester: fanfan";
+	    char receiveMessage[100] = {};
+	    
+	    send(sockfd,message,sizeof(message), 0);
+	    //recv(sockfd,receiveMessage,sizeof(receiveMessage),0);
+		
+	    printf("close Socket\n");
+	    close(sockfd);
+    }
+    
+    gettimeofday(&after, NULL);
+    printf("Before: %ld.%ld\n", before.tv_sec, before.tv_usec);
+    printf("After: %ld.%ld\n", after.tv_sec, after.tv_usec);
     
     return 0;
 }
