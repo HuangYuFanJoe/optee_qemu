@@ -1967,6 +1967,8 @@ static void cred_to_ucred(struct pid *pid, const struct cred *cred,
 	}
 }
 
+static DEFINE_MUTEX(pid_mutex);
+
 /*
  *	Send a datagram to a given address. We move the address into kernel
  *	space and check the user space data area is readable before invoking
@@ -2004,18 +2006,20 @@ int __sys_sendto(int fd, void __user *buff, size_t len, unsigned int flags,
 		flags |= MSG_DONTWAIT;
 	msg.msg_flags = flags;	
 	
+	mutex_lock(&pid_mutex);
 	struct pid *PID = sock->file->f_owner.pid;
+	mutex_unlock(&pid_mutex);
+
 	if(PID){
-
+		mutex_lock(&pid_mutex);
 		int frompid = PID->numbers[PID->level].nr;
-
 		struct sock *sk = sock->sk;
 		struct ucred peercred;
 		cred_to_ucred(sk->sk_peer_pid, sk->sk_peer_cred, &peercred);
 		int topid = peercred.pid;
-		
+
 		printk("frompid: %d, topid: %d", frompid, topid);
-		
+
 		char* sfrompid = (char*) kcalloc(10, sizeof(char), GFP_KERNEL);
 		char* stopid = (char *) kcalloc(10, sizeof(char), GFP_KERNEL);
 		sprintf(sfrompid, "%d", frompid);
@@ -2023,6 +2027,8 @@ int __sys_sendto(int fd, void __user *buff, size_t len, unsigned int flags,
 		char cmdPath[] = "/usr/bin/optee_example_process_flowctl";
 		char* cmdArgv[] = {cmdPath, sfrompid, stopid, NULL};
 		char* cmdEnv[] = {"HOME=/", "PATH=/bin:/sbin:/usr/bin", NULL};
+		mutex_unlock(&pid_mutex);
+
 		//printk("call usermodehelper return value: %d", call_usermodehelper(cmdPath, cmdArgv, cmdEnv, UMH_WAIT_PROC));
 		//ktime_t t;
 		//t = ktime_get();
