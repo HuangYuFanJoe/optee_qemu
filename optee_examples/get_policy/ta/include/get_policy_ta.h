@@ -24,43 +24,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef TA_GET_POLICY_H
+#define TA_GET_POLICY_H
 
-/*
- * The name of this file must not be modified
- */
+#define MAX_RECV_SIZE 4096
+#define MAX_SENDER_SIZE 20
 
-#ifndef USER_TA_HEADER_DEFINES_H
-#define USER_TA_HEADER_DEFINES_H
+typedef struct {
+	char servername[MAX_SENDER_SIZE];
+	char policy[50][50];
+	char digest[256];
+	uint32_t list_cnt;
+	uint32_t recv_time;
+} Receive_Information;
 
-/* To get the TA UUID definition */
-#include <process_flowctl_ta.h>
+#define TA_GET_POLICY_UUID \
+	{ 0x60c11952, 0xa15c, 0x404f, \
+		{ 0x85, 0x1a, 0x75, 0x1b, 0xf2, 0x3b, 0xcc, 0x7b} }
 
-#define TA_UUID				TA_PROCESS_FLOWCTL_UUID
+/* The function IDs implemented in this TA */
+#define TA_HELLO_WORLD_CMD_INC_VALUE		0
+#define TA_HELLO_WORLD_CMD_DEC_VALUE		1
+#define TA_GET_POLICY_CMD			2
 
-/*
- * TA properties: multi-instance TA, no specific attribute
- * TA_FLAG_EXEC_DDR is meaningless but mandated.
- */
-#define TA_FLAGS			(TA_FLAG_SINGLE_INSTANCE | TA_FLAG_INSTANCE_KEEP_ALIVE | TA_FLAG_MULTI_SESSION)
-
-/* Provisioned stack size */
-#define TA_STACK_SIZE			(2 * 1024)
-
-/* Provisioned heap size for TEE_Malloc() and friends */
-#define TA_DATA_SIZE			(32 * 1024)
-
-/* The gpd.ta.version property */
-#define TA_VERSION	"1.0"
-
-/* The gpd.ta.description property */
-#define TA_DESCRIPTION	"Example of OP-TEE Hello World Trusted Application"
-
-/* Extra properties */
-#define TA_CURRENT_TA_EXT_PROPERTIES \
-    { "org.linaro.optee.examples.hello_world.property1", \
-	USER_TA_PROP_TYPE_STRING, \
-        "Some string" }, \
-    { "org.linaro.optee.examples.hello_world.property2", \
-	USER_TA_PROP_TYPE_U32, &(const uint32_t){ 0x0010 } }
-
-#endif /* USER_TA_HEADER_DEFINES_H */
+#endif /*TA_GET_POLICY_H*/

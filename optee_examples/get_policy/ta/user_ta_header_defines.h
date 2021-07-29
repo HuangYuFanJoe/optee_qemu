@@ -33,9 +33,9 @@
 #define USER_TA_HEADER_DEFINES_H
 
 /* To get the TA UUID definition */
-#include <process_flowctl_ta.h>
+#include <get_policy_ta.h>
 
-#define TA_UUID				TA_PROCESS_FLOWCTL_UUID
+#define TA_UUID				TA_GET_POLICY_UUID
 
 /*
  * TA properties: multi-instance TA, no specific attribute

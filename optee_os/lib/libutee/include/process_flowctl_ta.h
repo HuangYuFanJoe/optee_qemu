@@ -19,7 +19,7 @@ typedef struct {
 		{ 0x8d, 0x45, 0xf4, 0xc4, 0x0a, 0x32, 0x37, 0xf2} }
 
 /* The function IDs implemented in this TA */
-#define TA_PROCESS_FLOWCTL_CMD 		0
+#define TA_PROCESS_FLOWCTL_CMD		0
 #define TA_UPDATE_WHITELIST_CMD		1
 
 #endif /*TA_PROCESS_FLOWCTL_H*/
