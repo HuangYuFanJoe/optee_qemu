@@ -6,11 +6,12 @@ OBJCOPY ?= $(CROSS_COMPILE)objcopy
 OBJDUMP ?= $(CROSS_COMPILE)objdump
 READELF ?= $(CROSS_COMPILE)readelf
 
-OBJS = main.o
+OBJS = main.o encode.o decode.o
 
 CFLAGS += -Wall -I../ta/include -I$(TEEC_EXPORT)/include -I./include
 #Add/link other required libraries here
 LDADD += -lteec -L$(TEEC_EXPORT)/lib
+LDFLAGS= -lm
 
 BINARY = blur_image_demo
 

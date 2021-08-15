@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <linux/socket.h>
 
-#define MAX_BUFFER_SIZE 1024
+#define MAX_BUFFER_SIZE 20000
 #define MAX_FILE_PATH_SIZE 512
 
 int main(int argc , char *argv[])
@@ -23,7 +23,7 @@ int main(int argc , char *argv[])
 	if(argc == 2)
 		strcpy(file_path, argv[1]);
 	else if(argc == 1)
-		strcpy(file_path, "//usr//image.png");
+		strcpy(file_path, "/usr/image.png");
 	else{
 		printf("Usage: %s file_path", argv[0]);
 		return 0;
