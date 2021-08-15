@@ -164,13 +164,11 @@ static TEE_Result check_flow(uint32_t param_types,
 
 	TEE_Time before, after;
 	TEE_GetREETime(&before);
-	
-	if(!whitelist){
+
+	if(update_whitelist() != TEE_SUCCESS){
 		set_default();
-		IMSG("Set default policy");
+		IMSG("update whitelist failed and set default policy: %s", whitelist[0]);
 	}
-	else
-		update_whitelist();
 
 	/* check */
 	for(uint32_t i = 0; i < list_cnt; i++){
