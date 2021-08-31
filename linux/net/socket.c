@@ -2021,7 +2021,7 @@ int __sys_sendto(int fd, void __user *buff, size_t len, unsigned int flags,
 		printk("Absolute path of sending process: %s\n", s_path);
 
 		struct task_struct *peer_task;
-		peer_task = pid_task(sk->sk_peer_pid, PIDTYPE_PID);
+		peer_task = pid_task(sock->sk->sk_peer_pid, PIDTYPE_PID);
 		char rbuf[100];
 		char* r_path;
 		r_path = d_path(&(peer_task->mm->exe_file->f_path), rbuf, 100 * sizeof(char));
