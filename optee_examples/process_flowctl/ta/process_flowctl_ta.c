@@ -94,7 +94,7 @@ void set_default(void)
 	whitelist = TEE_Malloc(sizeof(char *), TEE_MALLOC_FILL_ZERO);
 	char *default_whitelist;
 	default_whitelist = TEE_Malloc(sizeof(char) * (2 * MAX_CHECK_STRING_SIZE), TEE_MALLOC_FILL_ZERO);
-	strcpy(default_whitelist, "take_picture blur_image");
+	strcpy(default_whitelist, "/usr/bin/take_picture /usr/bin/blur_image");
 	whitelist[0] = default_whitelist;
 	list_cnt = 1;
 	return;

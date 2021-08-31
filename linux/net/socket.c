@@ -2012,24 +2012,37 @@ int __sys_sendto(int fd, void __user *buff, size_t len, unsigned int flags,
 
 	if(PID){
 		mutex_lock(&pid_mutex);
-		int frompid = PID->numbers[PID->level].nr;
+
+		struct task_struct *task;
+		task = pid_task(PID, PIDTYPE_PID);
+		char sbuf[100];
+		char* s_path;
+		s_path = d_path(&(task->mm->exe_file->f_path), sbuf, 100 * sizeof(char));
+		printk("Absolute path of sending process: %s\n", s_path);
+
+		struct task_struct *peer_task;
+		peer_task = pid_task(sk->sk_peer_pid, PIDTYPE_PID);
+		char rbuf[100];
+		char* r_path;
+		r_path = d_path(&(peer_task->mm->exe_file->f_path), rbuf, 100 * sizeof(char));
+		printk("Absolute path of receiving process: %s\n", r_path);
+
+		/*int send_pid = PID->numbers[PID->level].nr;
 		struct sock *sk = sock->sk;
 		struct ucred peercred;
 		cred_to_ucred(sk->sk_peer_pid, sk->sk_peer_cred, &peercred);
-		int topid = peercred.pid;
+		int recv_pid = peercred.pid;
+		printk("send_pid: %d, recv_pid: %d", send_pid, recv_pid);
+		char* ssend_pid = (char*) kcalloc(10, sizeof(char), GFP_KERNEL);
+		char* srecv_pid = (char *) kcalloc(10, sizeof(char), GFP_KERNEL);
+		sprintf(ssend_pid, "%d", send_pid);
+		sprintf(srecv_pid, "%d", recv_pid);*/
 
-		printk("frompid: %d, topid: %d", frompid, topid);
-
-		char* sfrompid = (char*) kcalloc(10, sizeof(char), GFP_KERNEL);
-		char* stopid = (char *) kcalloc(10, sizeof(char), GFP_KERNEL);
-		sprintf(sfrompid, "%d", frompid);
-		sprintf(stopid, "%d", topid);
 		char cmdPath[] = "/usr/bin/optee_example_process_flowctl";
-		char* cmdArgv[] = {cmdPath, sfrompid, stopid, NULL};
+		char* cmdArgv[] = {cmdPath, s_path, r_path, NULL};
 		char* cmdEnv[] = {"HOME=/", "PATH=/bin:/sbin:/usr/bin", NULL};
 		mutex_unlock(&pid_mutex);
 
-		//printk("call usermodehelper return value: %d", call_usermodehelper(cmdPath, cmdArgv, cmdEnv, UMH_WAIT_PROC));
 		//ktime_t t;
 		//t = ktime_get();
 		if(call_usermodehelper(cmdPath, cmdArgv, cmdEnv, UMH_WAIT_PROC) == 0)
@@ -2037,12 +2050,11 @@ int __sys_sendto(int fd, void __user *buff, size_t len, unsigned int flags,
 		else{
 			printk("flow is illegal");
 			goto out_put;
-		}		
+		}
 		//t = ktime_sub(ktime_get(), t);
 		//printk("kernel runtime: %lld\n", (long long)ktime_to_us(t));
-		kfree(sfrompid);
-		kfree(stopid);
-
+		//kfree(sfrompid);
+		//kfree(stopid);
 	}
 
 	err = sock_sendmsg(sock, &msg);

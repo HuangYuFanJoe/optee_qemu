@@ -16,26 +16,9 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	
-	char* from_pn = malloc(sizeof(char) * 50);
-	char* to_pn = malloc(sizeof(char) * 50);
-	memset(from_pn, '\0', sizeof(char) * 50);
-	memset(to_pn, '\0', sizeof(char) * 50);
-	
-	FILE *fr;
-	char path1[50] = {};
-	sprintf(path1, "/proc/%s/cmdline", argv[1]);
-	fr = fopen(path1, "r");
-	fscanf(fr, "%s", from_pn);
-	fclose(fr);
-	char path2[50] = {};
-	sprintf(path2, "/proc/%s/cmdline", argv[2]);
-	fr = fopen(path2, "r");
-	fscanf(fr, "%s", to_pn);
-	fclose(fr);
-	
 	FILE *fw;
-	fw = fopen("/pid_to_process_name.txt", "w");
-	fprintf(fw, "%s, %s", from_pn, to_pn);
+	fw = fopen("/absolute_path_pair.txt", "w");
+	fprintf(fw, "%s, %s", argv[1], argv[2]);
 	fclose(fw);
 	
 	TEEC_Result res;
@@ -63,8 +46,8 @@ int main(int argc, char *argv[])
 	}
 	memset(CI, 0, sizeof(Check_Information));
 	
-	strcpy(CI->source, from_pn);
-	strcpy(CI->destination, to_pn);
+	strcpy(CI->source, argv[1]);
+	strcpy(CI->destination, argv[2]);
 
 	/* Clear the TEEC_Operation struct */
 	memset(&op, 0, sizeof(op));
@@ -83,11 +66,8 @@ int main(int argc, char *argv[])
 	printf("Result: %d\n", CI->result);
 
 	TEEC_CloseSession(&sess);
-
 	TEEC_FinalizeContext(&ctx);
-	
-	free(from_pn);
-	free(to_pn);
+
 	if(!CI->result)
 		return -1;
 	return 0;
